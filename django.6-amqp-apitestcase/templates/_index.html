@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Django App</title>
+    <!-- Link to a CSS file -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h1>Welcome to the index page!</h1>
+    <!-- Display an image -->
+    {% comment %} <img src="{% static 'img/logo.png' %}" alt="My logo"> {% endcomment %}
+
+    <!-- Link to a JavaScript file (place before </body>) -->
+    {% comment %} <script src="{% static 'js/main.js' %}"></script> {% endcomment %}
+<h1 class="h1">Home Page</h1>
+</body>
+</html>
