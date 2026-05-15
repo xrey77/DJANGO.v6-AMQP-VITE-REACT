@@ -1,4 +1,4 @@
-<h3>Python 3.12.3 / Django 6.0.4, Advanced Message Queuing Protoco-AMQP / RabbitMQ
+<h3>Python 3.12.3 / Django 6.0.4, Advanced Message Queuing Protocol-AMQP / RabbitMQ
 <br/>Vite 8.0.0 + React 19.2.5, Vitest, RTL and PostgreSql Starter Project</h3>
 
 <p>React Dependencies</p>
@@ -22,5 +22,7 @@
 This will require your Google/Microsoft Authenticator</p>
 <p>4. Upload User's Profile Picture </p>
 <p>5. Products Listings, Catalogs pagination and Product Search</p>
-
+<p>6. Product Report-PDF</p>
+<p>7. Product by Category-Master/Details</p>
+<p>8. Annual Sales Chart</p>
 
