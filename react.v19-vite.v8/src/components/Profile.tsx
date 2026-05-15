@@ -31,7 +31,7 @@ export default function Profile() {
     const [qrcodeurl, setQrcodeurl] = useState<string>('');
 
     const fetchUserData = (id: any, token: any) => {
-        mfaapi.get(`api/getuserid/${id}`,{headers: {
+        mfaapi.get(`api/getuserid/${id}/`,{headers: {
             Authorization: `Bearer ${token}`
         }})
         .then((res: any) => {
@@ -39,7 +39,7 @@ export default function Profile() {
             setFname(res.data.firstname); 
             setEmail(res.data.email);
             setMobile(res.data.mobile);
-            let userpic: any = `http://127.0.0.1:8000/users/${res.data.userpic}`;
+            let userpic: any = `/media/users/${res.data.userpic}`;
             setUserpicture(userpic);
             setQrcodeurl(res.data.qrcodeurl);     
 
@@ -48,7 +48,7 @@ export default function Profile() {
                 let qrcode: any = res.data.qrcodeurl
                 setQrcodeurl(qrcode);
             } else {
-                setQrcodeurl('http://127.0.0.1:8000/images/qrcode.png');
+                setQrcodeurl('/media/images/qrcode.png');
             }
 
         }, (error: any) => {
@@ -87,8 +87,8 @@ export default function Profile() {
 
     const submitProfile = (event: any) => {
         event.preventDefault();
-        const jsondata =JSON.stringify({firstname: fname, lastname: lname, mobile: mobile });
-        mfaapi.patch(`api/updateprofile/${userid}`, jsondata, { headers: {
+        const jsondata =JSON.stringify({first_name: fname, last_name: lname, mobile: mobile });
+        mfaapi.patch(`api/updateprofile/${userid}/`, jsondata, { headers: {
             Authorization: `Bearer ${token}`
         }})
         .then((res: any) => {
@@ -122,7 +122,7 @@ export default function Profile() {
             .then((res: any) => {
                 setProfileMsg(res.data.message);
                 setTimeout(() => {
-                    let userpic: any = `http://127.0.0.1:8000/users/${res.data.userpic}`;
+                    let userpic: any = `/media/users/${res.data.userpic}`;
                     sessionStorage.setItem('USERPIC',userpic)
                     setProfileMsg('');
                     window.location.reload();
@@ -170,7 +170,7 @@ export default function Profile() {
 
     const enableMFA = () => {
         const data =JSON.stringify({TwoFactorEnabled: true });
-        mfaapi.patch(`api/mfa/activate/${userid}`, data, {headers: {
+        mfaapi.patch(`api/mfa/activate/${userid}/`, data, {headers: {
             Authorization: `Bearer ${token}`
         }})
         .then((res: any) => {
@@ -195,7 +195,7 @@ export default function Profile() {
 
     const disableMFA = () => {
         const jsonData =JSON.stringify({TwoFactorEnabled: false });      
-        mfaapi.patch(`api/mfa/activate/${userid}`, jsonData, {headers: {
+        mfaapi.patch(`api/mfa/activate/${userid}/`, jsonData, {headers: {
             Authorization: `Bearer ${token}`
         }})
         .then((res: any) => {
@@ -211,13 +211,14 @@ export default function Profile() {
             }
             setTimeout(() => {
                 setProfileMsg('');
-                setQrcodeurl('http://127.0.0.1:8000/images/qrcode.png');
+                setQrcodeurl('/media/images/qrcode.png');
             },3000);
             return;
         });
     }
 
-    const changePassword = (event: any) => {
+    const changePassword = async (event: any) => {
+        setProfileMsg("please wait....");
         event.preventDefault();
         if (newpassword === '') {
             setProfileMsg("Please enter new Pasword.");
@@ -242,8 +243,9 @@ export default function Profile() {
             return;            
         }
 
+        setProfileMsg("please wait...");
         const jsonData =JSON.stringify({password: newpassword });
-        mfaapi.patch(`api/changepassword/${userid}`, jsonData, {headers: {
+        await mfaapi.patch(`api/changepassword/${userid}/`, jsonData, {headers: {
             Authorization: `Bearer ${token}`
         }})
         .then((res: any) => {
@@ -251,7 +253,6 @@ export default function Profile() {
                 setTimeout(() => {
                     setProfileMsg('');
                 },3000);
-                return;
         }, (error: any) => {
             if (error.response) {
                 setProfileMsg(error.response.data.message);            

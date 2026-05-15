@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 
 const api = axios.create({
-  baseURL: "http://localhost:9000",
+  baseURL: "http://127.0.0.1:8000",
   headers: {'Accept': 'application/json',
             'Content-Type': 'application/json'}
 })
@@ -23,8 +23,9 @@ export default function Prodcatalog() {
     const [message, setMessage] = useState('');
 
     const fetchCatalog = async (pg: any) => {
-      api.get(`/take/products/list/${pg}`)
+      api.get(`api/products/list/${pg}/`)
       .then((res: any) => {
+        console.log(res.data.products)
         setProds(res.data.products);
         setTotpage(res.data.totpage);
         setTotalrecords(res.data.totalrecords);
@@ -89,7 +90,7 @@ export default function Prodcatalog() {
                     return (
                       <div className='col-md-4'>
                       <div key={item['id']} className="card mx-3 mt-3">
-                          <img src={`http://localhost:9000/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
+                          <img src={`/media/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
                           <div className="card-body">
                             <h5 className="card-title">Descriptions</h5>
                             <p className="card-text desc-h">{item['descriptions']}</p>

@@ -5,7 +5,7 @@ export default function About() {
   return (
     <>
 <div className="card bg-dark border-0 mt-3 about">
-  <img src="http://localhost:9000/images/about.jpg" className="card-img " alt="..."/>
+  <img src="/media/images/about.jpg" className="card-img " alt="..."/>
   <div className="card-body">
   </div>
   <div className="card-footer">

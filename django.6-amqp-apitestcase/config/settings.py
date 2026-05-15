@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from datetime import timedelta
-from kombu import Exchange, Queue
+from kombu import Exchange, Queue # type: ignore
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@k7spc$nv18ik7n1kz@)$wcw)31-)7(915cgzcqr+hazj$jyu#'
@@ -173,24 +173,21 @@ MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
 #RABBITMQ SETTTINGS
-CELERY_BROKER_URL = 'amqp://guest:guest@127.0.0.1:5672//'
+central_topic_exchange = Exchange('central_topic', type='topic')
+default_exchange = Exchange('default', type='direct')
 
-# Backend for storing task results
+CELERY_BROKER_URL = 'amqp://guest:guest@127.0.0.1:5672//'
 CELERY_RESULT_BACKEND = 'rpc://'
 
-CELERY_TASK_ROUTES = {
-    'config.tasks.authenticate_user_task': {
-        'exchange': 'central_topic',
-        'routing_key': 'auth.user_auth',
-    },
-}
+# Enable auto-creation
+CELERY_CREATE_MISSING_QUEUES = True
 
+# Ensure exchange is defined correctly
 CELERY_TASK_QUEUES = (
-    Queue('default', Exchange('default'), routing_key='default'),
-    Queue('auth_queue', Exchange('central_topic', type='topic'), routing_key='auth.#'),
+    Queue('default', default_exchange, routing_key='default'),
+    # Use the variable defined above, NOT a string literal 'central_topic_exchange'
+    Queue('auth_tasks', central_topic_exchange, routing_key='auth.#'),    
 )
 
 CELERY_TASK_DEFAULT_EXCHANGE = 'default'

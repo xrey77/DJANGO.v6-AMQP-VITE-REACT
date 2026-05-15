@@ -15,6 +15,11 @@ from django.db import IntegrityError
 from django.contrib.auth.password_validation import validate_password
 from config.tasks import authenticate_user_task 
 from rest_framework import status, permissions
+from kombu import Exchange # type: ignore
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 class GetAllUsers(APIView):    
     def get(self, request, *args, **kwargs):
@@ -130,14 +135,10 @@ class UpdateProfile(APIView):
         else:
             return Response({'message': 'Unauthorized Access.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # idno = kwargs.get('id') 
-        # user = Users.objects.get(id=idno)            
-        # user = get_object_or_404(Users, id=kwargs.get('id'))            
         user = get_object_or_404(Users, id=kwargs.get('id'))            
         if user is not None:
 
             partial = request.method == 'PATCH'
-            # serializer = UserSerializer(user, data=request.data, partial=partial)
             serializer = UserSerializer(user, data=request.data, partial=True)
             if serializer.is_valid():
                     user = serializer.save()
@@ -177,33 +178,30 @@ class ChangePassword(APIView):
         else:
             return Response({'message': 'Unauthorized Access.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        idno = kwargs.get('id')
-        pwd = request.data.get("password")
-        
-        if not pwd:
+        # logger.info(f"PASSWORD........ {request.data.get("password")}")
+
+        if not request.data.get("password"):
             return Response({'message': 'Password is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. Fetch the user (Replace 'Users' with your actual User model)
-        user = get_object_or_404(Users, id=idno)
 
         try:
-            # 2. Run standard Django validators (Min length, common, etc.)
-            validate_password(pwd, user=user)            
-            check_special_characters(pwd)            
-            user.set_password(pwd)
+            user = get_object_or_404(Users, id=kwargs.get('id'))
+            validate_password(request.data.get("password"), user=user)            
+            check_special_characters(request.data.get("password"))
+            user.set_password(request.data.get("password"))
             user.save()
             
+            change_password_exchange = Exchange('central_topic', type='topic', durable=True)            
             # AMQP IMPLEMENTATION
             authenticate_user_task.apply_async(
                 args=['guests', 'guests'],
-                exchange='central_topic',
+                exchange=change_password_exchange,         
                 routing_key='auth.changepassword.success'
             )
 
             return Response({'message': 'Your password has been successfully updated.'}, status=status.HTTP_200_OK)
 
         except ValidationError as e:
-            # Return the first error message found
             return Response({'message': list(e.messages)[0]}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

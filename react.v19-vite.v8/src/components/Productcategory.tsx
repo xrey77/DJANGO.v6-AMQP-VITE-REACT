@@ -1,13 +1,11 @@
-// Productreport.tsx
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 
-// 1. Create a specialized axios instance for the PDF
 const pdfApi = axios.create({
   baseURL: "http://127.0.0.1:8000",
 });
 
-const Productreport: React.FC = () => {
+const Productcategory: React.FC = () => {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +16,7 @@ const Productreport: React.FC = () => {
       try {
         setLoading(true);
         // 2. Request as a blob
-        const res = await pdfApi.get('api/productreport/', {
+        const res = await pdfApi.get('api/productscategory/', {
           responseType: 'blob',
           headers: { 'Accept': 'application/pdf' }
         });
@@ -59,11 +57,11 @@ const Productreport: React.FC = () => {
           src={url}
           width="100%"
           height="100%"
-          title="Product Report"
+          title="Product Category Report"
         />
       )}
     </div>
   );
 };
 
-export default Productreport;
+export default Productcategory;

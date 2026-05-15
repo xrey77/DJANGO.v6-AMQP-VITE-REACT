@@ -1,14 +1,10 @@
 import os
 from celery import Celery
 
-# Set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project_name.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'django.6-amqp-apitestcase.settings')
 
-app = Celery('your_project_name')
+app = Celery('django.6-amqp-apitestcase')
 
-# Load configuration from Django settings, using the 'CELERY_' prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Auto-discover tasks in all registered Django apps.
-# It looks for a 'tasks.py' module inside each app in INSTALLED_APPS.
 app.autodiscover_tasks()

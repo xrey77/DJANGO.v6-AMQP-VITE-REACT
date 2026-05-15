@@ -1,3 +1,4 @@
+from ctypes import c_buffer
 from rest_framework.views import APIView
 from django.core.paginator import Paginator
 from rest_framework import generics, filters
@@ -24,6 +25,7 @@ from reportlab.platypus import Spacer
 from reportlab.lib.pagesizes import A4
 from .models import Category
 from config.tasks import authenticate_user_task 
+from rest_framework.renderers import BaseRenderer
 
 class ProductList(APIView):    
     def get(self, request, *args, **kwargs):
@@ -116,12 +118,22 @@ class NumberedCanvas(canvas.Canvas):
         canvas.Canvas.save(self)
 
     def draw_page_number(self, page_count):
-        # Change the position (x, y) as needed
         self.setFont("Helvetica", 9)
         self.drawRightString(self._pagesize[0] - 0.5*inch, 0.5*inch,
                              f"Page {self._pageNumber} of {page_count}")
 
+class PdfRenderer(BaseRenderer):
+    media_type = 'application/pdf'
+    format = 'pdf'
+    charset = None
+    render_style = 'binary'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        return data
+
+
 class ProductReport(APIView):
+    renderer_classes = [PdfRenderer] 
     def get(self, request):
         products = Product.objects.all()
         buffer = io.BytesIO()
@@ -158,7 +170,7 @@ class ProductReport(APIView):
             canvas.saveState()            
             page_center = doc.pagesize[0] / 2
                         
-            logo_path = "static/images/logo2.png" 
+            logo_path = "media/images/logo.png" 
             logo_width = 150
             logo_height = 50 
             logo_x = page_center - (logo_width / 2)
@@ -186,10 +198,19 @@ class ProductReport(APIView):
             canvasmaker=NumberedCanvas)
         
         buffer.seek(0)
-        return FileResponse(buffer, as_attachment=True, filename='product_report.pdf')
+        return FileResponse(
+            buffer, 
+            as_attachment=False, 
+            filename='product_report.pdf',
+            content_type='application/pdf'
+        )        
+    
+
+
 
 
 class ProductsCategoryReport(APIView):
+    renderer_classes = [PdfRenderer] 
     def get(self, request):
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
@@ -235,85 +256,16 @@ class ProductsCategoryReport(APIView):
             page_num = canvas.getPageNumber()
             canvas.drawRightString(7.5 * inch, 0.75 * inch, f"Page {page_num}")
             canvas.restoreState()            
-            # canvas.saveState()
-            # # Subtitle (Top Left)
-            # current_date = datetime.now().strftime("%B %d, %Y")
-            # canvas.setFont('Helvetica', 10)
-            # canvas.drawString(inch, 10.5 * inch, f"Product Inventory Report \n As of {current_date}")
-            
-            # # Page Number (Bottom Right)
-            # page_num = canvas.getPageNumber()
-            # canvas.drawRightString(7.5 * inch, 0.75 * inch, f"Page {page_num}")
-            # canvas.restoreState()
 
         # Build the PDF
         doc.build(story, onFirstPage=header_footers_pages, onLaterPages=header_footers_pages)
 
         buffer.seek(0)
-        return FileResponse(buffer, as_attachment=True, filename='report.pdf')
-
-
-# class ProductsCategoryReport(APIView):    
-#     def get(self, request):
-#         # Create a file-like buffer to receive PDF data.
-#         buffer = io.BytesIO()
-        
-#         # Create the doc template
-#         doc = SimpleDocTemplate(buffer, pagesize=A4)
-#         styles = getSampleStyleSheet()
-#         story = []
-
-#         # Title
-#         story.append(Paragraph("Product Inventory Report", styles['Title']))
-#         story.append(Spacer(1, 12))
-#         current_date = datetime.now().strftime("%B %d, %Y")
-
-#         subtitle_text = f"As of {current_date}"
-#         story.append(Paragraph(subtitle_text, styles['Normal']))
-
-#         categories = Category.objects.prefetch_related('products').all()
-
-#         for category in categories:
-#             # MASTER: Category Name
-#             story.append(Paragraph(f"{category.name}", styles['Heading2']))
-#             story.append(Spacer(1, 5))
-
-#             # DETAILS: Product Table Headers
-#             data = [['Description', 'Unit', 'Qty', 'Cost', 'Sell']]
-            
-#             # Add product rows
-#             products = category.products.all()
-#             if products.exists():
-#                 for p in products:
-#                     data.append([
-#                         p.descriptions[:30], # Truncate for layout
-#                         p.unit or '-',
-#                         str(p.qty),
-#                         f"{p.costprice:.2f}",
-#                         f"{p.sellprice:.2f}"
-#                     ])
-                
-#                 # Create Table
-#                 t = Table(data, colWidths=[200, 60, 50, 70, 70])
-#                 t.setStyle(TableStyle([
-#                     ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-#                     ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-#                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-#                     ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-#                     ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-#                     ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
-#                     ('GRID', (0, 0), (-1, -1), 1, colors.black),
-#                 ]))
-#                 story.append(t)
-#             else:
-#                 story.append(Paragraph("No products in this category.", styles['Italic']))
-
-#             story.append(Spacer(1, 20))
-
-#         # Build PDF
-#         doc.build(story)
-
-#         # Return the response
-#         buffer.seek(0)
-#         return FileResponse(buffer, as_attachment=False, filename="product_report.pdf")
-
+        # return FileResponse(buffer, as_attachment=True, filename='report.pdf')
+        return FileResponse(
+            buffer, 
+            as_attachment=False, 
+            filename='product_report.pdf',
+            content_type='application/pdf'
+        )        
+    

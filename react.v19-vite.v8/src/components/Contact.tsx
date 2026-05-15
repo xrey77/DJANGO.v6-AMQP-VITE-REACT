@@ -7,7 +7,7 @@ export default function Contact() {
       <div className="card border-0 mb-3 mt-5 contact">
         <div className="row g-0">
           <div className="col-md-4">
-            <img src="http://localhost:9000/images/contact.jpeg" className="card-h rounded-start" alt="..."/>
+            <img src="/media/images/contact.jpeg" className="card-h rounded-start" alt="..."/>
           </div>
           <div className="col-md-8">
             <div className="card-body">

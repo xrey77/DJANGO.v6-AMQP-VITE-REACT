@@ -11,15 +11,16 @@ const api = axios.create({
 export default function Mfa() {
   const [otp, setOtp] = useState<string>('');
   const [message, setMessage] = useState<string>('');
+  const [isdisabled, setIsdisabled] = useState<boolean>(false)
 
   const submitMfa = (event: any) => {
     event.preventDefault();
-
+    setIsdisabled(true)
     const userid = sessionStorage.getItem('USERID');
     const token = sessionStorage.getItem('TOKEN');
     setMessage('please wait..');
     const jsonData =JSON.stringify({otp: otp });
-    api.patch(`api/mfa/verifytotp/${userid}`, jsonData, {headers: {
+    api.patch(`api/mfa/verifytotp/${userid}/`, jsonData, {headers: {
       Authorization: `Bearer ${token}`
   }})
     .then((res: any) => {
@@ -27,6 +28,7 @@ export default function Mfa() {
             sessionStorage.setItem("USERNAME", res.data.username);
             window.setTimeout(() => {
               setMessage('');
+              setIsdisabled(false);
               jQuery("#mfaReset").trigger('click');
               window.location.reload();
             }, 3000);
@@ -38,9 +40,16 @@ export default function Mfa() {
         }
         window.setTimeout(() => {
               setMessage('');
+              setIsdisabled(false);
             }, 3000);
             return;
     });        
+  }
+
+  const resetMfa = (event: any) => {
+    event.preventDefault();
+    setOtp('');
+    setIsdisabled(false);
   }
 
   const closeMfa = (event: any) => {
@@ -66,11 +75,11 @@ export default function Mfa() {
           <div className="modal-body">
           <form onSubmit={submitMfa} autoComplete="off">
             <div className="mb-3">
-              <input type="text" required value={otp} onChange={e => setOtp(e.target.value)} className="form-control border-dark" id="otp" placeholder="enter 6-digin OTP code"/>
+              <input type="text" required value={otp} onChange={e => setOtp(e.target.value)} className="form-control border-dark" id="otp" placeholder="enter 6-digin OTP code" disabled={isdisabled}/>
             </div>          
             <div className="mb-3">
-              <button type="submit" className="btn btn-info mx-2 text-dark">submit</button>
-              <button type="reset" className="btn btn-info text-dark">reset</button>
+              <button type="submit" className="btn btn-info mx-2 text-dark"  disabled={isdisabled}>submit</button>
+              <button onClick={resetMfa} type="button" className="btn btn-info text-dark">reset</button>
             </div>
           </form>            
           </div>

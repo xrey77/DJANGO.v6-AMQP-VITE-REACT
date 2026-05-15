@@ -22,9 +22,9 @@ export default function Register() {
   const submitRegistration = (event: any) => {
     event.preventDefault();
     setMessage('please wait...');
-    const jsonData =JSON.stringify({ lastname: lastname, firstname: firstname,email: email, mobile: mobile,
+    const jsonData =JSON.stringify({ last_name: lastname, first_name: firstname,email: email, mobile: mobile,
       username: username, password: password });
-     api.post('api/signup', jsonData)
+     api.post('api/signup/', jsonData)
     .then((res: any) => {
           setMessage(res.data.message);
           setTimeout(() => {

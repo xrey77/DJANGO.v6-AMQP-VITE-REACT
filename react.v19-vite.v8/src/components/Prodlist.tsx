@@ -25,7 +25,7 @@ export default function Prodlist() {
     let [products, setProducts] = useState<[]>([]);
 
     const fetchProducts = (pg: any) => {
-      api.get(`api/products/list/${pg}`)
+      api.get(`api/products/list/${pg}/`)
       .then((res: any) => {
         setProducts(res.data.products);
         setTotpage(res.data.totpage);

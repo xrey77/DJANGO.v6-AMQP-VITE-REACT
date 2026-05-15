@@ -11,7 +11,7 @@ class UserRegistration(APIView):
         if serializer.is_valid():
             xuser = serializer.save()
             xuser.role_id = 2
-            xuser.userpic = 'users/pix.png'
+            xuser.userpic = 'pix.png'
             # xuser.isactive = True
             # xuser.is_superuser = True
             xuser.is_staff = True

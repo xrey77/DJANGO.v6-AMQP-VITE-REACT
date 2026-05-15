@@ -14,22 +14,22 @@ export default function Home() {
   </div>
   <div className="carousel-inner">
     <div className="carousel-item active">
-      <img src="http://localhost:9000/images/4.png" className="d-block w-100" alt="..."/>
+      <img src="/media/images/4.png" className="d-block w-100" alt="..."/>
       <div className="carousel-caption d-none d-md-block">
       </div>
     </div>
     <div className="carousel-item">
-      <img src="http://localhost:9000/images/3.png" className="d-block w-100" alt="..."/>
+      <img src="/media/images/3.png" className="d-block w-100" alt="..."/>
       <div className="carousel-caption d-none d-md-block">
       </div>
     </div>
     <div className="carousel-item">
-      <img src="http://localhost:9000/images/2.png" className="d-block w-100" alt="..."/>
+      <img src="/media/images/2.png" className="d-block w-100" alt="..."/>
       <div className="carousel-caption d-none d-md-block">
       </div>
     </div>
     <div className="carousel-item">
-      <img src="http://localhost:9000/images/1.png" className="d-block w-100" alt="..."/>
+      <img src="/media/images/1.png" className="d-block w-100" alt="..."/>
       <div className="carousel-caption d-none d-md-block">
       </div>
     </div>

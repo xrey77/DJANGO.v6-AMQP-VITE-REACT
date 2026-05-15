@@ -27,7 +27,7 @@ export default function Prodsearch() {
   const getProdsearch = async (event: any) => {
       event.preventDefault();
       setMessage("please wait .");
-      await api.get(`api/products/search/${page}/${key}`)
+      await api.get(`api/products/search/${page}/${key}/`)
       .then((res: any) => {
           setProdsearch(res.data.products);
           setTotpage(res.data.totpage);
@@ -132,7 +132,7 @@ return (
               return (
               <div className='col-md-4'>
               <div key={item['id']} className="card mx-3 mt-3">
-                  <img src={`http://localhost:9000/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
+                  <img src={`/media/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
                   <div className="card-body">
                     <h5 className="card-title">Descriptions</h5>
                     <p className="card-text desc-h">{item['descriptions']}</p>
@@ -147,7 +147,7 @@ return (
       })}
         </div>          
         {
-          totpage > 1 ? 
+          totalrecords > 5 ? 
           <>
           <nav aria-label="Page navigation example">
             <ul className="pagination sm mt-3">

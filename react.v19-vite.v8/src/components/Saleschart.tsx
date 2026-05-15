@@ -30,7 +30,7 @@ ChartJS.register(
 );
 
 const logo = new Image();
-logo.src = '/images/logo.png';
+logo.src = '/media/images/logo.png';
 
 const logoPlugin = {
   id: 'logoPlugin',
@@ -77,8 +77,8 @@ const initialOptions: ChartOptions<'bar'> = {
 };
 
 interface SalesData {
-  date: string;
-  amount: number;
+  salesdate: string;
+  salesamount: number;
 }
 
 export default function Saleschart() {
@@ -131,16 +131,16 @@ export default function Saleschart() {
     
   const fetchSales = async () => {
     try {
-      const res = await api.get<SalesData[]>("api/saleschart");
+      const res = await api.get<SalesData[]>("api/saleschart/");
       const apiData = res.data;
   
       setChartData({
         labels: apiData.map(item => 
-          new Date(item.date).toLocaleString('en-US', { month: 'short' })
+          new Date(item.salesdate).toLocaleString('en-US', { month: 'short' })
         ),        
         datasets: [{
             label: 'Sales Amount',
-            data: apiData.map(item => item.amount),
+            data: apiData.map(item => item.salesamount),
             backgroundColor: 'rgba(60, 179, 113)',  //bar green color          
         }],
       });

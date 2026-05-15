@@ -36,7 +36,7 @@ export default function Header() {
     <>
 <nav className="navbar navbar-expand-lg bg-dark">
   <div className="container-fluid">
-    <Link className="navbar-brand" to="/"><img className="logo" src="http://localhost:9000/images/logo.png" alt=""/></Link>
+    <Link className="navbar-brand" to="/"><img className="logo" src="/media/images/logo.png" alt=""/></Link>
     <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions" aria-controls="offcanvasWithBothOptions">   
       <span className="navbar-dark navbar-toggler-icon"></span>
     </button>
@@ -64,6 +64,8 @@ export default function Header() {
           <ul className="dropdown-menu">
             <li><Link className="dropdown-item" to="/productreport">Product Report</Link></li>
             <li><Link className="dropdown-item" to="/saleschart">Annuals Sales Chart</Link></li>
+            <li><Link className="dropdown-item" to="/productcategory">Products by Category</Link></li>
+
           </ul>
         </li>
 
@@ -134,6 +136,9 @@ export default function Header() {
               <Link className="dropdown-item" to="/productreport">Product Report(pdf)</Link></li>
             <li data-bs-dismiss="offcanvas">
               <Link className="dropdown-item" to="/saleschart">Annuals Sales Chart</Link></li>
+              <li data-bs-dismiss="offcanvas">
+              <Link className="dropdown-item" to="/productcategory">Products by Category</Link></li>
+
           </ul>
         </li>
 
