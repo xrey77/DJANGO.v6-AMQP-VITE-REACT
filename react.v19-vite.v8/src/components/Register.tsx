@@ -17,25 +17,23 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  
-
-  const submitRegistration = (event: any) => {
+  const submitRegistration = async (event: any) => {
     event.preventDefault();
     setMessage('please wait...');
     const jsonData =JSON.stringify({ last_name: lastname, first_name: firstname,email: email, mobile: mobile,
       username: username, password: password });
-     api.post('api/signup/', jsonData)
+     await api.post('api/signup/', jsonData)
     .then((res: any) => {
           setMessage(res.data.message);
           setTimeout(() => {
             setMessage('');
-          }, 3000);
+          }, 1000);
           return;
       }, (error: any) => {
         setMessage(error.response.data.message);
         setTimeout(() => {
           setMessage('');
-        }, 3000);
+        }, 1000);
         return;
     });    
   }
@@ -101,8 +99,8 @@ export default function Register() {
                 </div>
               </div>
               <div className="mb-3">
-                <button type="submit" className="btn btn-danger mx-2">register</button>
-                <button onClick={closeRegistration} type="reset" className="btn btn-danger">reset</button>
+                <button type="submit" name="register" role="button" className="btn btn-danger mx-2">register</button>
+                <button onClick={closeRegistration} type="button" role="button" name="reset" className="btn btn-danger">reset</button>
               </div>
           </form>
 

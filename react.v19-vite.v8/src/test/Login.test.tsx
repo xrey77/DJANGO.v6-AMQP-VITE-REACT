@@ -54,7 +54,6 @@ describe('Login Component', () => {
 
     let store: Record<string, string> = {};
     const sessionStorageMock = {
-      // getItem: vi.fn((key: string) => store[key] || null),
       setItem: vi.fn((key: string, value: any) => { 
         store[key] = value !== undefined && value !== null ? value.toString() : ""; 
       }),

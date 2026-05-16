@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import jQuery from 'jquery';
+import { enableMFA, disableMFA } from "../services/mfaService"
 
 const mfaapi = axios.create({
   baseURL: "http://127.0.0.1:8000",
@@ -20,15 +21,35 @@ export default function Profile() {
     const [fname, setFname] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [mobile, setMobile] = useState<string>('');
-    const [userpicture, setUserpicture] = useState<string>('');
+    const [userpicture, setUserpicture] = useState<string | null>(null);
     const [token, setToken] = useState<string>('');
     const [newpassword, setNewPassword ] = useState<string>('');
     const [confnewpassword, setConfNewPassword ] = useState<string>('');    
-    const [profileMsg, setProfileMsg] = useState<string>('');
+    const [profileMsg, setProfileMsg] = useState<string | null>(null);
     const [showmfa, setShowMfa] = useState<boolean>(false);
     const [showpwd, setShowPwd] = useState<boolean>(false);
     const [showupdate, setShowUpdate] = useState<boolean>(false);
-    const [qrcodeurl, setQrcodeurl] = useState<string>('');
+    const [qrcodeurl, setQrcodeurl] = useState<string | null>(null);
+
+    const handleEnableMfaClick = () => {
+        enableMFA({
+          userid,
+          token,
+          setProfileMsg,
+          setQrcodeurl
+        });
+      };
+
+      const handleDisableMfaClick = () => {
+        disableMFA({
+          userid,
+          token,
+          setProfileMsg,
+          setQrcodeurl
+        });
+      };
+
+
 
     const fetchUserData = (id: any, token: any) => {
         mfaapi.get(`api/getuserid/${id}/`,{headers: {
@@ -85,33 +106,38 @@ export default function Profile() {
         }, 2000);
     },[]) 
 
-    const submitProfile = (event: any) => {
+    const submitProfile = async (event: any) => {
         event.preventDefault();
-        const jsondata =JSON.stringify({first_name: fname, last_name: lname, mobile: mobile });
-        mfaapi.patch(`api/updateprofile/${userid}/`, jsondata, { headers: {
-            Authorization: `Bearer ${token}`
-        }})
-        .then((res: any) => {
-            setProfileMsg(res.data.message);
-            setTimeout(() => {
-                setProfileMsg('');
-            },3000);
-            return;
-        }, (error: any) => {
-            if (error.response) {
-                setProfileMsg(error.response.data.message);            
-            } else {
-                setProfileMsg(error.message);            
-            }
-            setTimeout(() => {
-                setProfileMsg('');
-            },3000);
-            return;
-        });
+        try {
+            const jsondata =JSON.stringify({first_name: fname, last_name: lname, mobile: mobile });
+            await mfaapi.patch(`api/updateprofile/${userid}/`, jsondata, { headers: {
+                Authorization: `Bearer ${token}`
+            }})
+            .then((res: any) => {
+                setProfileMsg(res.data.message);
+                setTimeout(() => {
+                    setProfileMsg('');
+                },3000);
+                return;
+            }, (error: any) => {
+                if (error.response) {
+                    setProfileMsg(error.response.data.message);            
+                } else {
+                    setProfileMsg(error.message);            
+                }
+                setTimeout(() => {
+                    setProfileMsg('');
+                },3000);
+                return;
+            });
+        } catch (error: any) {
+            setProfileMsg(error.response?.data?.message || "An error occurred");
+        }            
     }
 
     const changePicture = (event: any) => {
         event.preventDefault();
+        try {
             var pix = URL.createObjectURL(event.target.files[0]);
             jQuery('#userpic').attr('src', pix);
             const formData = new FormData();
@@ -139,6 +165,10 @@ export default function Profile() {
                 },3000);
                 return;
             });
+        } catch (error: any) {
+            setProfileMsg(error.response?.data?.message || "An error occurred");
+        }            
+
     }
 
     const cpwdCheckbox = (e: any) => {
@@ -166,55 +196,6 @@ export default function Profile() {
             setShowMfa(false);
             setShowUpdate(false)
         }
-    }
-
-    const enableMFA = () => {
-        const data =JSON.stringify({TwoFactorEnabled: true });
-        mfaapi.patch(`api/mfa/activate/${userid}/`, data, {headers: {
-            Authorization: `Bearer ${token}`
-        }})
-        .then((res: any) => {
-            setProfileMsg(res.data.message);
-            setTimeout(() => {
-                let qrcode: any =  res.data.qrcodeurl
-                setQrcodeurl(qrcode);
-                setProfileMsg('');
-            },3000);
-        }, (error: any) => {
-            if (error.response) {
-                setProfileMsg(error.response.data.message);            
-            } else {
-                setProfileMsg(error.message);            
-            }
-            setTimeout(() => {
-                setProfileMsg('');
-            },3000);
-            return;
-        });
-    }
-
-    const disableMFA = () => {
-        const jsonData =JSON.stringify({TwoFactorEnabled: false });      
-        mfaapi.patch(`api/mfa/activate/${userid}/`, jsonData, {headers: {
-            Authorization: `Bearer ${token}`
-        }})
-        .then((res: any) => {
-            setProfileMsg(res.data.message);
-            setTimeout(() => {
-                setProfileMsg('');
-            },3000);
-        }, (error: any) => {
-            if (error.response) {
-                setProfileMsg(error.response.data.message);            
-            } else {
-                setProfileMsg(error.message);            
-            }
-            setTimeout(() => {
-                setProfileMsg('');
-                setQrcodeurl('/media/images/qrcode.png');
-            },3000);
-            return;
-        });
     }
 
     const changePassword = async (event: any) => {
@@ -276,8 +257,8 @@ export default function Profile() {
         <form encType="multipart/form-data" autoComplete='false'>
                 <div className='row'>
                     <div className='col'>
-                        <input className="form-control bg-warning text-dark border-primary" id="firstname" name="firstname" type="text" value={fname} onChange={e => setFname(e.target.value)} required  />
-                        <input className="form-control bg-warning text-dark border-primary mt-2" id="lastname" name="lastname" type="text" value={lname} onChange={e => setLname(e.target.value )} required />
+                        <input className="form-control bg-warning text-dark border-primary" id="firstname" name="firstname" type="text" value={fname} onChange={e => setFname(e.target.value)} placeholder="Firstname" required  />
+                        <input className="form-control bg-warning text-dark border-primary mt-2" id="lastname" name="lastname" type="text" value={lname} onChange={e => setLname(e.target.value )} placeholder="Lastname" required />
                     </div>
                     <div className='col text-right'>
 
@@ -288,17 +269,21 @@ export default function Profile() {
                         <input className="form-control bg-warning border-primary mt-2" id="email" name="email" type="email" value={email} onChange={e => setEmail(e.target.value)} readOnly />
                     </div>
                     <div className='col'>
-                        <img id="userpic" src={userpicture} className="userpic" alt="" />
+                        { userpicture !== null ? (
+                            <img id="userpic" src={userpicture} className="userpic" alt="" />
+                        ) : (
+                            null
+                        )}
                     </div>
                 </div>
 
 
                 <div className='row'>
                     <div className='col'>
-                            <input className="form-control bg-warning border-primary mt-2" id="mobileno" name="mobileno" type="text" value={mobile} onChange={e => setMobile(e.target.value)} required />
+                            <input className="form-control bg-warning border-primary mt-2" id="mobileno" name="mobileno" type="text" value={mobile} onChange={e => setMobile(e.target.value)} placeholder="Mobile" required />
                     </div>
                     <div className='col'>
-                        <input className="userpicture mt-2" onChange={changePicture} type="file"/>
+                        <input className="userpicture mt-2" onChange={changePicture} type="file" name="upload" placeholder="change picture"/>
                     </div>
                 </div>
 
@@ -315,13 +300,17 @@ export default function Profile() {
                                 showmfa === true ? (
                                     <div className='row'>
                                         <div className='col-5'>
-                                            <img id="googleAuth" src={qrcodeurl} className="qrCode2" alt="QRCODE" />
+                                            { qrcodeurl !== null ? (
+                                                <img id="googleAuth" src={qrcodeurl} className="qrCode2" alt="QRCODE" />
+                                            ) : (
+                                                null
+                                            )}
                                         </div>
                                         <div className='col-7'>
                                             <p className='text-danger mfa-pos-1'><strong>Requirements</strong></p>
                                             <p className="mfa-pos-2">You need to install <strong>Google or Microsoft Authenticator</strong> in your Mobile Phone, once installed, click Enable Button below, and <strong>SCAN QR CODE</strong>, next time you login, another dialog window will appear, then enter the <strong>OTP CODE</strong> from your Mobile Phone in order for you to login.</p>
-                                            <button onClick={enableMFA} type="button" className='btn btn-primary mfa-btn-1 mx-1'>enable</button>
-                                            <button onClick={disableMFA} type="button" className='btn btn-secondary mfa-btn-2'>disable</button>
+                                            <button onClick={handleEnableMfaClick} type="button" name="enable" role="button" className='btn btn-primary mfa-btn-1 mx-1'>enable</button>
+                                            <button onClick={handleDisableMfaClick} type="button" className='btn btn-secondary mfa-btn-2'>disable</button>
                                         </div>
                                     </div>
                                 )
@@ -353,7 +342,7 @@ export default function Profile() {
                 </div> 
                 {
                     showupdate === false ? (
-                        <button onClick={submitProfile} type='submit' className='btn btn-primary text-white mt-2'>update profile</button>
+                        <button onClick={submitProfile} type='submit' className='btn btn-primary text-white mt-2' name="update">update profile</button>
                     )
                     :
                     null
