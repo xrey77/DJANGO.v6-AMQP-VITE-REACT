@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useEffectEvent } from "react";
 import axios from "axios";
 import jQuery from 'jquery';
 import { enableMFA, disableMFA } from "../services/mfaService"
@@ -16,7 +16,7 @@ const api = axios.create({
 })
 
 export default function Profile() {    
-    const [userid, setUserid] = useState<string>('');;
+    const [userid, setUserid] = useState<string>('');
     const [lname, setLname] = useState<string>('');
     const [fname, setFname] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -25,12 +25,12 @@ export default function Profile() {
     const [token, setToken] = useState<string>('');
     const [newpassword, setNewPassword ] = useState<string>('');
     const [confnewpassword, setConfNewPassword ] = useState<string>('');    
-    const [profileMsg, setProfileMsg] = useState<string | null>(null);
+    const [profileMsg, setProfileMsg] = useState<string>('');
     const [showmfa, setShowMfa] = useState<boolean>(false);
     const [showpwd, setShowPwd] = useState<boolean>(false);
     const [showupdate, setShowUpdate] = useState<boolean>(false);
     const [qrcodeurl, setQrcodeurl] = useState<string | null>(null);
-
+      
     const handleEnableMfaClick = () => {
         enableMFA({
           userid,
@@ -49,30 +49,27 @@ export default function Profile() {
         });
       };
 
-
-
-    const fetchUserData = (id: any, token: any) => {
+    const fetchUserData = (id: string, token: string) => {
         mfaapi.get(`api/getuserid/${id}/`,{headers: {
             Authorization: `Bearer ${token}`
         }})
-        .then((res: any) => {
+        .then((res) => {
             setLname(res.data.lastname); 
             setFname(res.data.firstname); 
             setEmail(res.data.email);
             setMobile(res.data.mobile);
-            let userpic: any = `/media/users/${res.data.userpic}`;
+            const userpic: string = `/media/users/${res.data.userpic}`;
             setUserpicture(userpic);
             setQrcodeurl(res.data.qrcodeurl);     
 
             if (res.data.qrcodeurl != null) {
-                // let qrcode: any = 'data:image/png;base64,' + res.data.qrcodeurl
-                let qrcode: any = res.data.qrcodeurl
+                const qrcode: string = res.data.qrcodeurl
                 setQrcodeurl(qrcode);
             } else {
                 setQrcodeurl('/media/images/qrcode.png');
             }
 
-        }, (error: any) => {
+        }, (error) => {
             if (error.response) {
                 setProfileMsg(error.response.data.message);            
             } else {
@@ -86,75 +83,102 @@ export default function Profile() {
 
     useEffect(() => {
         jQuery("#password").prop('disabled', true);
-
-        const userId = sessionStorage.getItem('USERID');
-        if (userId !== null) {
-            setUserid(userId)
-        } else {
-            setUserid('')
-        }
-        const xtoken = sessionStorage.getItem('TOKEN');
-        if (xtoken !== null) {
-            setToken(xtoken);
-        } else {
-            setToken('');
-        }
+        const savedUserId = sessionStorage.getItem('USERID') || '';
+        // eslint-disable-next-line react-hooks/set-state-in-effect        
+        setUserid(savedUserId);
+        // eslint-disable-next-line react-hooks/set-state-in-effect        
+        const xtoken: string = sessionStorage.getItem('TOKEN') || '';
+        setToken(xtoken);
         setProfileMsg('please wait..');
-        fetchUserData(userId, xtoken);    
+        fetchUserData(savedUserId, xtoken);    
         setTimeout(() => {
             setProfileMsg('');
         }, 2000);
     },[]) 
 
-    const submitProfile = async (event: any) => {
+    // const submitProfile = async (event: React.SubmitEvent<HTMLFormElement>) => {  
+    //     event.preventDefault();
+    //     try {
+    //         const jsondata =JSON.stringify({first_name: fname, last_name: lname, mobile: mobile });
+    //         await mfaapi.patch(`api/updateprofile/${userid}/`, jsondata, { headers: {
+    //             Authorization: `Bearer ${token}`
+    //         }})
+    //         .then((res) => {
+    //             setProfileMsg(res.data.message);
+    //             setTimeout(() => {
+    //                 setProfileMsg('');
+    //             },3000);
+    //             return;
+    //         }, (error) => {
+    //             if (error.response) {
+    //                 setProfileMsg(error.response.data.message);            
+    //             } else {
+    //                 setProfileMsg(error.message);            
+    //             }
+    //             setTimeout(() => {
+    //                 setProfileMsg('');
+    //             },3000);
+    //             return;
+    //         });
+    //     } catch (error) {
+    //         if (error.response)  {
+    //             setProfileMsg(error.response?.data?.message);
+    //         } else {
+    //             setProfileMsg(error.message);
+    //         }
+    //     }            
+    // }
+    const submitProfile = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
-            const jsondata =JSON.stringify({first_name: fname, last_name: lname, mobile: mobile });
-            await mfaapi.patch(`api/updateprofile/${userid}/`, jsondata, { headers: {
-                Authorization: `Bearer ${token}`
-            }})
-            .then((res: any) => {
-                setProfileMsg(res.data.message);
-                setTimeout(() => {
-                    setProfileMsg('');
-                },3000);
-                return;
-            }, (error: any) => {
-                if (error.response) {
-                    setProfileMsg(error.response.data.message);            
-                } else {
-                    setProfileMsg(error.message);            
+            const jsondata = JSON.stringify({ first_name: fname, last_name: lname, mobile: mobile });            
+            const res = await mfaapi.patch(`api/updateprofile/${userid}/`, jsondata, {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
-                setTimeout(() => {
-                    setProfileMsg('');
-                },3000);
-                return;
             });
-        } catch (error: any) {
-            setProfileMsg(error.response?.data?.message || "An error occurred");
-        }            
-    }
+    
+            setProfileMsg(res.data.message);
+            setTimeout(() => setProfileMsg(''), 3000);
+    
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    setProfileMsg(error.response.data?.message || 'Update failed');
+                } else if (error.request) {
+                    setProfileMsg('No response from server');
+                } else {
+                    setProfileMsg(error.message);
+                }
+            } else {
+                setProfileMsg('An unexpected error occurred');
+            }
+            
+            setTimeout(() => setProfileMsg(''), 3000);
+        }
+    };
 
-    const changePicture = (event: any) => {
+
+    const changePicture = (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
-            var pix = URL.createObjectURL(event.target.files[0]);
+            const pix = URL.createObjectURL(event.target.files[0]);
             jQuery('#userpic').attr('src', pix);
             const formData = new FormData();
             formData.append('userpic', event.target.files[0]);
             api.patch(`api/uploadpicture/${userid}`, formData, {headers: {
                 Authorization: `Bearer ${token}`
             }})
-            .then((res: any) => {
+            .then((res) => {
                 setProfileMsg(res.data.message);
                 setTimeout(() => {
-                    let userpic: any = `/media/users/${res.data.userpic}`;
+                    const userpic: string = `/media/users/${res.data.userpic}`;
                     sessionStorage.setItem('USERPIC',userpic)
                     setProfileMsg('');
                     window.location.reload();
                 },3000);
                 return;
-            }, (error: any) => {
+            }, (error) => {
                 if (error.response) {
                     setProfileMsg(error.response.data.message);            
                 } else {
@@ -165,13 +189,25 @@ export default function Profile() {
                 },3000);
                 return;
             });
-        } catch (error: any) {
-            setProfileMsg(error.response?.data?.message || "An error occurred");
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error)) {
+                if (error.response) {
+                    setProfileMsg(error.response.data?.message || 'Update failed');
+                } else if (error.request) {
+                    setProfileMsg('No response from server');
+                } else {
+                    setProfileMsg(error.message);
+                }
+            } else {
+                setProfileMsg('An unexpected error occurred');
+            }
+            
+            setTimeout(() => setProfileMsg(''), 3000);
         }            
 
     }
 
-    const cpwdCheckbox = (e: any) => {
+    const cpwdCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
             setShowUpdate(true);
             setShowPwd(true);
@@ -186,7 +222,7 @@ export default function Profile() {
         }
     }
 
-    const mfaCheckbox = (e: any) => {
+    const mfaCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
             setShowMfa(true);
             setShowUpdate(true)
@@ -198,7 +234,7 @@ export default function Profile() {
         }
     }
 
-    const changePassword = async (event: any) => {
+    const changePassword = async (event: React.ChangeEvent<HTMLInputElement>) => {
         setProfileMsg("please wait....");
         event.preventDefault();
         if (newpassword === '') {
@@ -229,12 +265,12 @@ export default function Profile() {
         await mfaapi.patch(`api/changepassword/${userid}/`, jsonData, {headers: {
             Authorization: `Bearer ${token}`
         }})
-        .then((res: any) => {
+        .then((res) => {
                 setProfileMsg(res.data.message);
                 setTimeout(() => {
                     setProfileMsg('');
                 },3000);
-        }, (error: any) => {
+        }, (error) => {
             if (error.response) {
                 setProfileMsg(error.response.data.message);            
             } else {

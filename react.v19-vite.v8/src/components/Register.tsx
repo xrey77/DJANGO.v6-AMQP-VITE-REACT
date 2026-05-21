@@ -17,19 +17,19 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  const submitRegistration = async (event: any) => {
+  const submitRegistration = async (event: React.SubmitEvent<HTMLFormElement>) => {  
     event.preventDefault();
     setMessage('please wait...');
     const jsonData =JSON.stringify({ last_name: lastname, first_name: firstname,email: email, mobile: mobile,
       username: username, password: password });
      await api.post('api/signup/', jsonData)
-    .then((res: any) => {
+    .then((res) => {
           setMessage(res.data.message);
           setTimeout(() => {
             setMessage('');
           }, 1000);
           return;
-      }, (error: any) => {
+      }, (error) => {
         setMessage(error.response.data.message);
         setTimeout(() => {
           setMessage('');
@@ -38,7 +38,7 @@ export default function Register() {
     });    
   }
 
-  const closeRegistration = (event: any) => {
+  const closeRegistration = (event: React.MouseEvent<HTMLButtonElement>) => {   
     event.preventDefault();
     setFirstname('');
     setLastname('');

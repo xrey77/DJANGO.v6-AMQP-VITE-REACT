@@ -8,29 +8,29 @@ const api = axios.create({
             'Content-Type': 'application/json'}
 })
 
-const toDecimal = (number: any) => {
+const toDecimal = (val: number) => {
   const formatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  return formatter.format(number);
+  return formatter.format(val);
 };
 export default function Prodcatalog() {
-    let [page, setPage] = useState<number>(1);
-    let [prods, setProds] = useState<[]>([]);
-    let [totpage, setTotpage] = useState<number>(0);
-    let [totalrecords, setTotalrecords] = useState<number>(0);
+    const [page, setPage] = useState<number>(1);
+    const [prods, setProds] = useState<[]>([]);
+    const [totpage, setTotpage] = useState<number>(0);
+    const [totalrecords, setTotalrecords] = useState<number>(0);
     const [message, setMessage] = useState('');
 
-    const fetchCatalog = async (pg: any) => {
+    const fetchCatalog = async (pg: number) => {
       api.get(`api/products/list/${pg}/`)
-      .then((res: any) => {
+      .then((res) => {
         console.log(res.data.products)
         setProds(res.data.products);
         setTotpage(res.data.totpage);
         setTotalrecords(res.data.totalrecords);
         setPage(res.data.page);
-      }, (error: any) => {
+      }, (error) => {
             if (error.response) {
                 setMessage(error.response.data.message);            
             } else {
@@ -48,36 +48,38 @@ export default function Prodcatalog() {
       fetchCatalog(page)
     },[page]);
 
-    const firstPage = (event: any) => {
+    const firstPage = (event: React.MouseEvent<HTMLAnchorElement>) => {   
         event.preventDefault();    
-        page = 1;
+        setPage(1);
         return fetchCatalog(page);
       }
     
-      const nextPage = (event: any) => {
+      const nextPage = (event: React.MouseEvent<HTMLAnchorElement>) => {    
         event.preventDefault();    
         if (page == totpage) {
             setPage(totpage);
             return;
         } else {
-          page++;
-          return fetchCatalog(page);  
+          let pg: number = page;
+          pg++;
+          return fetchCatalog(pg);  
         }
       }
     
-      const prevPage = (event: any) => {
+      const prevPage = (event: React.MouseEvent<HTMLAnchorElement>) => {  
         event.preventDefault();    
         if (page === 1) {
           setPage(1);
           return;
           }
-          page--;
-          return fetchCatalog(page);
+          let pg: number = page;
+          pg--;
+          return fetchCatalog(pg);
       }
     
-      const lastPage = (event: any) => {
+      const lastPage = (event: React.MouseEvent<HTMLAnchorElement>) => {   
         event.preventDefault();
-        page = totpage;
+        setPage(totpage);
         return fetchCatalog(page);
       }
 
@@ -90,7 +92,7 @@ export default function Prodcatalog() {
                     return (
                       <div className='col-md-4'>
                       <div key={item['id']} className="card mx-3 mt-3">
-                          <img src={`/media/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
+                          <img src={`http://127.0.0.1:8000/media/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
                           <div className="card-body">
                             <h5 className="card-title">Descriptions</h5>
                             <p className="card-text desc-h">{item['descriptions']}</p>

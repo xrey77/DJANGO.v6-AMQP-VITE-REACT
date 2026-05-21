@@ -13,17 +13,18 @@ export default function Mfa() {
   const [message, setMessage] = useState<string>('');
   const [isdisabled, setIsdisabled] = useState<boolean>(false)
 
-  const submitMfa = (event: any) => {
+  const submitMfa = async (event: any) => {
     event.preventDefault();
     setIsdisabled(true)
     const userid = sessionStorage.getItem('USERID');
     const token = sessionStorage.getItem('TOKEN');
     setMessage('please wait..');
     const jsonData =JSON.stringify({otp: otp });
-    api.patch(`api/mfa/verifytotp/${userid}/`, jsonData, {headers: {
-      Authorization: `Bearer ${token}`
-  }})
-    .then((res: any) => {
+    await api.patch(`api/mfa/verifytotp/${userid}/`, jsonData, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }).then((res: any) => {
           setMessage(res.data.message);
             sessionStorage.setItem("USERNAME", res.data.username);
             window.setTimeout(() => {
@@ -75,11 +76,11 @@ export default function Mfa() {
           <div className="modal-body">
           <form onSubmit={submitMfa} autoComplete="off">
             <div className="mb-3">
-              <input type="text" required value={otp} onChange={e => setOtp(e.target.value)} className="form-control border-dark" id="otp" placeholder="enter 6-digin OTP code" disabled={isdisabled}/>
+              <input type="text" name="text" required value={otp} onChange={e => setOtp(e.target.value)} className="form-control border-dark" id="otp" placeholder="enter 6-digit OTP code" disabled={isdisabled}/>
             </div>          
             <div className="mb-3">
-              <button type="submit" className="btn btn-info mx-2 text-dark"  disabled={isdisabled}>submit</button>
-              <button onClick={resetMfa} type="button" className="btn btn-info text-dark">reset</button>
+              <button type="submit" name="submit" role="button" className="btn btn-info mx-2 text-dark"  disabled={isdisabled}>submit</button>
+              <button onClick={resetMfa} type="button" name="reset" role="button" className="btn btn-info text-dark">reset</button>
             </div>
           </form>            
           </div>

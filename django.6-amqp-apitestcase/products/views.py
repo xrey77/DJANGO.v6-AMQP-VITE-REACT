@@ -51,11 +51,11 @@ class ProductList(APIView):
             }
 
             # AMQP IMPLEMENTATION
-            authenticate_user_task.apply_async(
-                args=['guests', 'guests'],
-                exchange='central_topic',
-                routing_key='auth.productlist.success'
-            )
+            # authenticate_user_task.apply_async(
+            #     args=['guests', 'guests'],
+            #     exchange='central_topic',
+            #     routing_key='auth.productlist.success'
+            # )
 
             return Response(pageData, status.HTTP_200_OK)
         
@@ -87,11 +87,11 @@ class ProductSearch(APIView):
             }            
 
             # AMQP IMPLEMENTATION
-            authenticate_user_task.apply_async(
-                args=['guests', 'guests'],
-                exchange='central_topic',
-                routing_key='auth.productsearch.success'
-            )
+            # authenticate_user_task.apply_async(
+            #     args=['guests', 'guests'],
+            #     exchange='central_topic',
+            #     routing_key='auth.productsearch.success'
+            # )
 
 
             return Response(pageData, status.HTTP_200_OK)

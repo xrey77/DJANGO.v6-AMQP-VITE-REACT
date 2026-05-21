@@ -17,15 +17,15 @@ export default function Login() {
    const [isDisabled, setIsdisabled] = useState(false);
    const navigate = useNavigate();
 
-   const submitLogin = async (event: any) => {
+   const submitLogin = async (event: React.SubmitEvent<HTMLFormElement>) => {  
     event.preventDefault();
     setMessage('please wait...');
     setIsdisabled(true);
     const jsonData =JSON.stringify({ username: username, password: password });
     await api.post("api/login/", jsonData)
-    .then((res: any) => {
+    .then((res) => {
             setMessage(res.data.message);
-            let userpic: any = `http://127.0.01:8000/media/users/${res.data.userpic}`;
+            const userpic: string = `http://127.0.01:8000/media/users/${res.data.userpic}`;
             if (res.data.qrcodeurl != null) {
                 window.sessionStorage.setItem('USERID',res.data.id || '');
                 window.sessionStorage.setItem('TOKEN',res.data.token);
@@ -48,7 +48,7 @@ export default function Login() {
                   location.reload();                    
                 }, 1000);
             }
-      }, (error: any) => {
+      }, (error) => {
           if (error.response) {
             setMessage(error.response.data.message);
           } else {
@@ -62,7 +62,7 @@ export default function Login() {
     });    
   }
 
-  const closeLogin = (event: any) => {
+  const closeLogin = (event: React.MouseEvent<HTMLButtonElement>) => {    
     event.preventDefault();
     setIsdisabled(false);    
     setMessage('');

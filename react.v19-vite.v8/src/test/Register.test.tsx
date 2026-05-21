@@ -1,3 +1,4 @@
+// RUN : npx vitest Register.test.tsx
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';

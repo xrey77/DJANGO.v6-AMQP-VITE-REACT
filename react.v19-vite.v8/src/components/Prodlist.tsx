@@ -1,37 +1,43 @@
 import axios from 'axios';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const api = axios.create({
-  baseURL: "http://127.0.0.1:8000",
-  headers: {'Accept': 'application/json',
-            'Content-Type': 'application/json'}
-})
 
+interface Product {
+  id: number;
+  descriptions: string;
+  qty: number,
+  unit: string;
+  sellprice: number;
+}
 
 export default function Prodlist() {
-
-  const toDecimal = (number: any) => {
+  const api = axios.create({
+    baseURL: "http://127.0.0.1:8000",
+    headers: {'Accept': 'application/json',
+              'Content-Type': 'application/json'}
+  });
+  
+  const toDecimal = (val: number) => {
     const formatter = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-    return formatter.format(number);
+    return formatter.format(val);
   };
 
-    let [page, setPage] = useState<number>(1);
-    let [totpage, setTotpage] = useState<number>(0);
-    let [totalrecs, setTotalrecs] = useState<number>(0);
-    let [message, setMessage] = useState<string>('');
-    let [products, setProducts] = useState<[]>([]);
+    const [page, setPage] = useState<number>(1);
+    const [totpage, setTotpage] = useState<number>(0);
+    const [totalrecs, setTotalrecs] = useState<number>(0);
+    const [message, setMessage] = useState<string>('');
+    const [products, setProducts] = useState<Product[]>([]);
 
-    const fetchProducts = (pg: any) => {
-      api.get(`api/products/list/${pg}/`)
-      .then((res: any) => {
+    const fetchProducts = async (pg: number) => {
+      await api.get(`api/products/list/${pg}/`).then((res) => {
         setProducts(res.data.products);
         setTotpage(res.data.totpage);
         setTotalrecs(res.data.totalrecords);
         setPage(res.data.page);
-      }, (error: any) => {
+      }, (error) => {
         if (error.response) {
           setMessage(error.response.data.message);            
         } else {
@@ -46,38 +52,41 @@ export default function Prodlist() {
 
     useEffect(() => {
       fetchProducts(page);
-   },[page]);
+   },[]);
 
-    const firstPage = (event: any) => {
+    const firstPage = (event: React.MouseEvent<HTMLAnchorElement>) => {      
         event.preventDefault();    
-        page = 1;
+        setPage(1)
         fetchProducts(page);
         return;    
       }
     
-      const nextPage = (event: any) => {
+      const nextPage = (event: React.MouseEvent<HTMLAnchorElement>) => {  
         event.preventDefault();    
         if (page == totpage) {
             setPage(totpage);
             return;
         }
-        page++;
-        return fetchProducts(page);
+        let pg: number = page;
+        pg++;
+        return fetchProducts(pg);
       }
     
-      const prevPage = (event: any) => {
+      const prevPage = (event: React.MouseEvent<HTMLAnchorElement>) => {    
         event.preventDefault();    
         if (page === 1) {
           return;
           }
-          page--;
-          return fetchProducts(page);
+          let pg: number = page;
+          pg--;
+          return fetchProducts(pg);
       }
     
-      const lastPage = (event: any) => {
+      const lastPage = (event: React.MouseEvent<HTMLAnchorElement>) => {     
         event.preventDefault();
-        page = totpage;
-        return fetchProducts(page);
+        let pg: number = page;
+        pg = totpage;
+        return fetchProducts(pg);
       }  
   
   return (

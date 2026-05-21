@@ -1,3 +1,4 @@
+// RUN : npx vitest Profile.test.tsx
 import { render, screen, waitFor,fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';

@@ -180,15 +180,15 @@ default_exchange = Exchange('default', type='direct')
 CELERY_BROKER_URL = 'amqp://guest:guest@127.0.0.1:5672//'
 CELERY_RESULT_BACKEND = 'rpc://'
 
-# Enable auto-creation
-CELERY_CREATE_MISSING_QUEUES = True
-
 # Ensure exchange is defined correctly
 CELERY_TASK_QUEUES = (
     Queue('default', default_exchange, routing_key='default'),
     # Use the variable defined above, NOT a string literal 'central_topic_exchange'
-    Queue('auth_tasks', central_topic_exchange, routing_key='auth.#'),    
+    # Queue('auth_tasks', central_topic_exchange, routing_key='auth.#'),    
+    Queue('auth_tasks', central_topic_exchange, routing_key='auth.#', declare=True),        
 )
 
+# Enable auto-creation
+CELERY_CREATE_MISSING_QUEUES = True
 CELERY_TASK_DEFAULT_EXCHANGE = 'default'
 CELERY_TASK_DEFAULT_ROUTING_KEY = 'default'

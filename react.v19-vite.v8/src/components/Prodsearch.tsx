@@ -7,28 +7,39 @@ const api = axios.create({
             'Content-Type': 'application/json'}
 })
 
-const toDecimal = (number: any) => {
+const toDecimal = (val: number) => {
   const formatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  return formatter.format(number);
+  return formatter.format(val);
 };
+
+interface Product {
+  id: number;
+  descriptions: string;
+  qty: number,
+  unit: string;
+  productpicture: string;
+  sellprice: number;
+}
+
 
 
 export default function Prodsearch() {
-  let [message, setMessage] = useState('');
-  let [prodsearch, setProdsearch] = useState<[]>([]);
-  let [page, setPage] = useState<number>(1);
-  let [totpage, setTotpage] = useState<number>(0);
-  let [totalrecords, setTotalrecords] = useState<number>(0);
-  let [key, setSearchkey] = useState<string>('');
+  const [message, setMessage] = useState('');
+  const [prodsearch, setProdsearch] = useState<Product[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [totpage, setTotpage] = useState<number>(0);
+  const [totalrecords, setTotalrecords] = useState<number>(0);
+  const [key, setSearchkey] = useState<string>('');
 
-  const getProdsearch = async (event: any) => {
+  const getProdsearch = async (event: React.SubmitEvent<HTMLFormElement>) => {   
       event.preventDefault();
       setMessage("please wait .");
+      setSearchkey(key);
       await api.get(`api/products/search/${page}/${key}/`)
-      .then((res: any) => {
+      .then((res) => {
           setProdsearch(res.data.products);
           setTotpage(res.data.totpage);
           setTotalrecords(res.data.totalrecords)
@@ -37,7 +48,7 @@ export default function Prodsearch() {
             setMessage('');
           }, 1000);
 
-      }, (error: any) => {     
+      }, (error) => {     
         if (error.response){
           setMessage(error.response.data.message);
         } else {
@@ -52,25 +63,27 @@ export default function Prodsearch() {
       });  
   }
 
-  const getProdPage = async (page: number) => {
+  const getProdPage = async (pg: number, xkey: string) => {
     setMessage("please wait .");
-    await api.get(`/take/products/search/${page}/${key}`)
-    .then((res: any) => {
-        setProdsearch(res.data.products);
-        setTotpage(res.data.totpage);
-        setPage(res.data.page);
-        setTimeout(() => {
+    await api.get(`api/products/search/${pg}/${xkey}`)
+    .then((res) => {
+      setProdsearch(res.data.products);
+      // setTotpage(res.data.totpage);
+      // setTotalrecords(res.data.totalrecords)
+      setPage(res.data.page);
+      setTimeout(() => {
           setMessage('');
         }, 1000);
 
 
-    }, (error: any) => {        
+    }, (error) => {        
       if (error.response){
         setMessage(error.response.data.message);
       } else {
         setMessage(error.message);
       }
       setProdsearch([]);
+      // setTotalrecords(0);
       setTimeout(() => {
           setMessage('');
       }, 3000);
@@ -78,38 +91,42 @@ export default function Prodsearch() {
     });  
 }
 
-  const firstPage = (event: any) => {
+  const firstPage = (event: React.MouseEvent<HTMLAnchorElement>) => {  
     event.preventDefault();    
-    page = 1;
-    return getProdPage(page);
+    setPage(1);
+    getProdPage(page, key);
+    return;
   }
 
-  const nextPage = (event: any) => {
+  const nextPage = (event: React.MouseEvent<HTMLAnchorElement>) => {  
     event.preventDefault();    
-    if (page == totpage) {
-        page = 0;
+    if (page === totpage) {
         setPage(totpage);
         return;
-    } else {
-      page++;
-      return getProdPage(page);  
     }
+    let pg: number = page;
+    pg++;
+    setPage(pg);
+    getProdPage(pg, key);
+    return;
   }
 
-  const prevPage = (event: any) => {
+  const prevPage = (event: React.MouseEvent<HTMLAnchorElement>) => {  
     event.preventDefault();    
     if (page === 1) {
       setPage(1);
       return;
       }
-      page--;
-      return getProdPage(page);
+      let pg: number = page;
+      pg--;
+      getProdPage(pg, key);
+      return;
   }
 
-  const lastPage = (event: any) => {
+  const lastPage = (event: React.MouseEvent<HTMLAnchorElement>) => {  
     event.preventDefault();
-    page = totpage;
-    return getProdPage(page);
+    setPage(totpage);
+    return getProdPage(page, key);
   }  
    
 return (
@@ -132,7 +149,7 @@ return (
               return (
               <div className='col-md-4'>
               <div key={item['id']} className="card mx-3 mt-3">
-                  <img src={`/media/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
+                  <img src={`http://127.0.0.1:8000/media/products/${item['productpicture']}`} className="card-img-top product-size" alt=""/>
                   <div className="card-body">
                     <h5 className="card-title">Descriptions</h5>
                     <p className="card-text desc-h">{item['descriptions']}</p>
